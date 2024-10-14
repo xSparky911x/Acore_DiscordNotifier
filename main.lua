@@ -55,7 +55,8 @@ local PLAYER_EVENT_ON_LOGIN = 3
 local function sendToDiscord(event, msg)
     if msg and event then
         local webhook = Config.hooks[event] or Config.hooks.globalWebook
-        HttpRequest("POST", webhook, '{"content": "'..msg..'"}', "application/json", 
+        local formattedMsg = "```bash\n" .. msg .. "\n```"  -- Makes the message green using 'bash' syntax highlighting
+        HttpRequest("POST", webhook, '{"content": "'..formattedMsg..'"}', "application/json", 
         function(status, body, headers)
             if status ~= 200 then
                 print("DiscordNotifier[Lua] Error when sending webhook to discord. Response body is: "..body)
@@ -104,11 +105,15 @@ end
 
 -- OnGuildChat
 local function OnGuildChat(event, player, msg, Type, lang, guild)
-    local name = player:GetName()
-    local guid = player:GetGUIDLow()
-    local gName = guild:GetName()
-    local gId = guild:GetId()
-    sendToDiscord("PLAYER_EVENT_ON_GUILD_CHAT", '__GUILD__ -> **[ |'..gId..'| -> '..gName..'] |'..guid..'| '..name..'**: '..msg)
+    if Config.eventOn.PLAYER_EVENT_ON_GUILD_CHAT then
+        local name = player:GetName()
+        local guid = player:GetGUIDLow()
+        local gName = guild:GetName()
+
+        -- Create the formatted message with green and gold
+        local guildMessage = '[**' .. gName .. '**] |' .. guid .. '| ' .. name .. ': ' .. msg
+        sendToDiscord("PLAYER_EVENT_ON_GUILD_CHAT", guildMessage)
+    end
 end
 
 --[[
