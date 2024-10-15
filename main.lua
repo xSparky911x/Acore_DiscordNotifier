@@ -30,6 +30,10 @@ Config.hooks.PLAYER_EVENT_ON_GUILD_CHAT = nil
 Config.hooks.PLAYER_EVENT_ON_LOGIN = nil
 Config.hooks.PLAYER_EVENT_ON_LOGOUT = nil
 
+-- Webhook to send Server Events
+Config.hooks.SERVER_STARTUP = nil
+Config.hooks.SERVER_SHUTDOWN = nil
+
 -- Feature Flag for enabiling each event
 Config.eventOn.PLAYER_EVENT_ON_CHAT = true
 Config.eventOn.PLAYER_EVENT_ON_WHISPER = true
@@ -37,6 +41,8 @@ Config.eventOn.PLAYER_EVENT_ON_GROUP_CHAT = true
 Config.eventOn.PLAYER_EVENT_ON_GUILD_CHAT = true
 Config.eventOn.PLAYER_EVENT_ON_LOGIN = true
 Config.eventOn.PLAYER_EVENT_ON_LOGOUT = true
+Config.eventOn.SERVER_STARTUP = true
+Config.eventOn.SERVER_SHUTDOWN = true
 
 --[[
 
@@ -87,6 +93,22 @@ end
     Events Section -- DO NOT TOUCH!!
 
 ]]--
+
+-- Function to handle server startup
+local function OnServerStartup()
+    if Config.eventOn.SERVER_STARTUP then
+        local startupMessage = "```fix\n[SERVER]: The server has started!```"
+        sendToDiscord("SERVER_STARTUP", startupMessage)
+    end
+end
+
+-- Function to handle server shutdown
+local function OnServerShutdown()
+    if Config.eventOn.SERVER_SHUTDOWN then
+        local shutdownMessage = "```fix\n[SERVER]: The server is shutting down!```"
+        sendToDiscord("SERVER_SHUTDOWN", shutdownMessage)
+    end
+end
 
 -- OnLogin
 local function OnLogin(event, player)
@@ -168,6 +190,10 @@ RegisterPlayerEvent(PLAYER_EVENT_ON_GUILD_CHAT, OnGuildChat)
 RegisterPlayerEvent(PLAYER_EVENT_ON_LOGIN, OnLogin)
 -- OnLogout
 RegisterPlayerEvent(PLAYER_EVENT_ON_LOGOUT, OnLogout)
+-- OnServerStartup
+RegisterServerEvent("WORLD_STARTUP_EVENT", OnServerStartup)
+-- OnServerShutdown
+RegisterServerEvent("WORLD_SHUTDOWN_INITIATED", OnServerShutdown)
 
 
 --[[
