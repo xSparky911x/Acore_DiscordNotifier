@@ -16,7 +16,7 @@ Config.eventOn = {}
 Config.privacyWarning = true 
 
 -- This is the global Discord Webhook to use if other specific Webhooks are not defined. IMPORTANT: Must always be defined since its used as fallback
-Config.hooks.globalWebook = "https://discord.com/api/webhooks/1287259836928757900/5aj-SelfNZUapUGc1gkSoIYSt_P3hsuuzEU7-qXuB7Jl6tKD_hFbr1ME4XtZ7YvO1wPH"
+Config.hooks.globalWebook = "https://discord.com/api/webhooks/.../..." -- Your Discord Webhook URL
 -- Webhook to send OnChat events
 Config.hooks.PLAYER_EVENT_ON_CHAT = nil
 -- Webhook to send OnWhisperChat events
