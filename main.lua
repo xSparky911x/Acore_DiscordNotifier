@@ -62,11 +62,21 @@ local PLAYER_EVENT_ON_LOGOUT = 4
 local function sendToDiscord(event, msg)
     if msg and event then
         local webhook = Config.hooks[event] or Config.hooks.globalWebook
-        local formattedMsg = "```bash\n" .. msg .. "\n```"  -- Makes the message green using 'bash' syntax highlighting
-        HttpRequest("POST", webhook, '{"content": "'..formattedMsg..'"}', "application/json", 
+        
+        -- Properly escape the message content
+        msg = msg:gsub([[\]], [[\\]])  -- Escape backslashes
+                 :gsub('"', '\\"')      -- Escape double quotes
+                 :gsub("\n", "\\n")     -- Escape newlines
+
+        -- Construct the JSON payload
+        local payload = '{"content": "' .. msg .. '"}'
+        
+        -- Send the request
+        HttpRequest("POST", webhook, payload, "application/json", 
         function(status, body, headers)
-            if status ~= 200 then
-                print("DiscordNotifier[Lua] Error when sending webhook to discord. Response body is: "..body)
+            -- Treat both 200 OK and 204 No Content as success
+            if status ~= 200 and status ~= 204 then
+                print("Error when sending webhook to Discord. Status: " .. status .. ". Response body: " .. (body or "No response body"))
             end
         end)
     end
@@ -104,8 +114,9 @@ end
 local function OnChat(event, player, msg, Type, lang)
     if Config.eventOn.PLAYER_EVENT_ON_CHAT then
         local name = player:GetName()
-        local guid = player:GetGUIDLow()
-        sendToDiscord("PLAYER_EVENT_ON_CHAT", '__CHAT__ -> **|'..guid..'| '..name..'**: '..msg)
+
+        local chatMessage = '[C] - [**'.. name ..'**]: ' .. msg
+        sendToDiscord("PLAYER_EVENT_ON_CHAT", chatMessage)
     end
 end
 
@@ -113,22 +124,19 @@ end
 local function OnWhisperChat(event, player, msg, Type, lang, receiver)
     if Config.eventOn.PLAYER_EVENT_ON_WHISPER then
         local sName = player:GetName()
-        local sGuid = player:GetGUIDLow()
         local rName = receiver:GetName()
-        local rGuid = receiver:GetGUIDLow()
-        sendToDiscord("PLAYER_EVENT_ON_WHISPER", '__WHISPER__ -> **|'..sGuid..'| '..sName..' -> |'..rGuid..'| '..rName..'**: '..msg)
+
+        local whisperMessage = '[W] - [**'.. sName ..'**] -> [**'..rName..'**]: ' .. msg
+        sendToDiscord("PLAYER_EVENT_ON_WHISPER", whisperMessage)
     end
 end
 
 -- OnGroupChat
 local function OnGroupChat(event, player, msg, Type, lang, group)
     local name = player:GetName()
-    local guid = player:GetGUIDLow()
-    local leaderGuid = group:GetLeaderGUID()
-    local leader = GetPlayerByGUID(leaderGuid)
-    local lName = leader:GetName()
-    local lGuidLow = leader:GetGUIDLow()
-    sendToDiscord("PLAYER_EVENT_ON_GROUP_CHAT", '__GROUP CHAT__ -> **|'..guid..'| '..name..'**: '..msg..' **[LEADER -> '..lName..'('..lGuidLow..')]**')
+
+    local groupMessage = '[P] - [**'.. name ..'**]: ' .. msg
+    sendToDiscord("PLAYER_EVENT_ON_GROUP_CHAT", groupMessage)
 end
 
 
@@ -136,11 +144,9 @@ end
 local function OnGuildChat(event, player, msg, Type, lang, guild)
     if Config.eventOn.PLAYER_EVENT_ON_GUILD_CHAT then
         local name = player:GetName()
-        local guid = player:GetGUIDLow()
         local gName = guild:GetName()
 
-        -- Create the formatted message with green and gold
-        local guildMessage = '[**' .. gName .. '**] |' .. guid .. '| ' .. name .. ': ' .. msg
+        local guildMessage = '[G] - [**' .. gName .. '**] [**'.. name ..'**]: ' .. msg
         sendToDiscord("PLAYER_EVENT_ON_GUILD_CHAT", guildMessage)
     end
 end
